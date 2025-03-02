@@ -9,8 +9,7 @@ CREATE TABLE Value
     CHECK (
       (IntegerValue IS NOT NULL AND FloatValue IS NULL AND StringValue IS NULL) OR
       (IntegerValue IS NULL AND FloatValue IS NOT NULL AND StringValue IS NULL) OR
-      (IntegerValue IS NULL AND FloatValue IS NULL AND StringValue IS NOT NULL) OR
-      (IntegerValue IS NULL AND FloatValue IS NULL AND StringValue IS NULL)
+      (IntegerValue IS NULL AND FloatValue IS NULL AND StringValue IS NOT NULL)
     )
 );
 
