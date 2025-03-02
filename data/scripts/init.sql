@@ -1,9 +1,9 @@
 CREATE TABLE Value
 (
   VID CHAR(36) NOT NULL,
-  IntegerValue INT NOT NULL,
-  FloatValue FLOAT NOT NULL,
-  StringValue VARCHAR NOT NULL,
+  IntegerValue INT,
+  FloatValue FLOAT,
+  StringValue VARCHAR,
   PRIMARY KEY (VID)
 );
 
