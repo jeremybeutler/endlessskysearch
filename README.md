@@ -34,3 +34,4 @@ To run queries or modify the database:
 sudo -u postgres psql script.sh
 
 ```
+# A simple guide to the basic commands can be found in endlessskysearch/data/psql_help.txt (https://github.com/jeremybeutler/endlessskysearch.git) 
