@@ -1,0 +1,16 @@
+Connect & Exit commands:
+\q			-- exit
+\c <DB_NAME>		-- Connect to <DB_NAME>
+\conninfo		-- Show current connection
+User/Role Management:
+\du			-- List all roles
+DB Operations:
+\l			-- List databases
+Table operations:
+\dt			-- List tables
+\d <TABLE_NAME>		-- Show <TABLE_NAME>'s structure
+Misc commands:
+\timing			-- Toggle query timing
+\x auto			-- Auto-expand wide results
+\e			-- Edit last query in text editor
+\?			-- help (show all psql commands)
