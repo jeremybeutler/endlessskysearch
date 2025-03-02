@@ -5,6 +5,13 @@ CREATE TABLE Value
   FloatValue FLOAT,
   StringValue VARCHAR,
   PRIMARY KEY (VID)
+  CONSTRAINT chk_OneNonKeyPopulated
+    CHECK (
+      (IntegerValue IS NOT NULL AND FloatValue IS NULL AND StringValue IS NULL) OR
+      (IntegerValue IS NULL AND FloatValue IS NOT NULL AND StringValue IS NULL) OR
+      (IntegerValue IS NULL AND FloatValue IS NULL AND StringValue IS NOT NULL) OR
+      (IntegerValue IS NULL AND FloatValue IS NULL AND StringValue IS NULL)
+    )
 );
 
 CREATE TABLE Ship
