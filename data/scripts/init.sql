@@ -4,7 +4,7 @@ CREATE TABLE Value
   IntegerValue INT,
   FloatValue FLOAT,
   StringValue VARCHAR,
-  PRIMARY KEY (VID)
+  PRIMARY KEY (VID),
   CONSTRAINT chk_OneNonKeyPopulated
     CHECK (
       (IntegerValue IS NOT NULL AND FloatValue IS NULL AND StringValue IS NULL) OR
@@ -18,9 +18,9 @@ CREATE TABLE Ship
   SID CHAR(36) NOT NULL,
   Faction VARCHAR NOT NULL,
   Uncapturable INT NOT NULL,
-  Never-Disabled INT NOT NULL,
+  Never_Disabled INT NOT NULL,
   License VARCHAR,
-  Name-Singular VARCHAR NOT NULL,
+  Name_Singular VARCHAR NOT NULL,
   NamePlural VARCHAR NOT NULL,
   Sprite VARCHAR NOT NULL,
   CustomShip INT NOT NULL,
