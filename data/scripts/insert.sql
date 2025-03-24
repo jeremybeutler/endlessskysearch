@@ -1,5 +1,5 @@
 -- Insert into Ship (CustomShip not included, so it can be deleted)
-INSERT INTO Ship (sid, faction, uncapturable, "Never-Disabled", license, "Name-Singular", nameplural, sprite, description)
+INSERT INTO Ship (sid, faction, uncapturable, "Never_Disabled", license, "Name_Singular", nameplural, sprite, description)
 VALUES
   ('550e8400-e29b-41d4-a716-446655440000', 'Federation', 0, 1, 'Pilot License', 'Falcon', 'Falcons', 'falcon.png', 'A fast and agile spaceship.');
 -- Insert into Value (Each row has a unique UUID and only one value type populated)
