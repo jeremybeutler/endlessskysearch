@@ -35,6 +35,66 @@ def get_all_items():
     result = cursor.fetchall() # Gets result from query
     conn.close() # Close the db connection (NOTE: You should do this after each query, otherwise your database may become locked)
     return result
+def get_all_ships(): ## Eman0202byu ###A function that pulls the view of all ships in database
+    # Create a new database connection for each request
+    conn = get_db_connection()  # Create a new database connection
+    cursor = conn.cursor() # Creates a cursor for the connection, you need this to do queries
+    # Query the db
+    query = "SELECT name, quantity FROM items"
+    cursor.execute(query)
+    # Get result and close
+    result = cursor.fetchall() # Gets result from query
+    conn.close() # Close the db connection (NOTE: You should do this after each query, otherwise your database may become locked)
+    return result
+
+def get_ship_param(): ## Eman0202byu ###passed in arg1 = collum_name arg2 = collumn_value
+    # Create a new database connection for each request
+    conn = get_db_connection()  # Create a new database connection
+    cursor = conn.cursor() # Creates a cursor for the connection, you need this to do queries
+    # Query the db
+    query = "SELECT name, quantity FROM items"
+    cursor.execute(query)
+    # Get result and close
+    result = cursor.fetchall() # Gets result from query
+    conn.close() # Close the db connection (NOTE: You should do this after each query, otherwise your database may become locked)
+    return result
+
+def get_ship_id(): ## Eman0202byu ###passed in arg1 = SID (Ship ID)
+    # Create a new database connection for each request
+    conn = get_db_connection()  # Create a new database connection
+    cursor = conn.cursor() # Creates a cursor for the connection, you need this to do queries
+    # Query the db
+    query = "SELECT name, quantity FROM items"
+    cursor.execute(query)
+    # Get result and close
+    result = cursor.fetchall() # Gets result from query
+    conn.close() # Close the db connection (NOTE: You should do this after each query, otherwise your database may become locked)
+    return result
+def create_ship(): ## Eman0202byu ###passed in arg1 = ship obj; return SID
+    # Create a new database connection for each request
+    conn = get_db_connection()  # Create a new database connection
+    cursor = conn.cursor() # Creates a cursor for the connection, you need this to do queries
+    # Query the db
+    query = "SELECT name, quantity FROM items"
+    cursor.execute(query)
+    # Get result and close
+    result = cursor.fetchall() # Gets result from query
+    conn.close() # Close the db connection (NOTE: You should do this after each query, otherwise your database may become locked)
+    return result
+
+def update_ship(): ## Eman0202byu ###passed in arg1 = ship obj;
+#### Passed in ship obj; grabs SID, updates all values for that SID with the values in arg1;
+    #
+    # Create a new database connection for each request
+    conn = get_db_connection()  # Create a new database connection
+    cursor = conn.cursor() # Creates a cursor for the connection, you need this to do queries
+    # Query the db
+    query = "SELECT name, quantity FROM items"
+    cursor.execute(query)
+    # Get result and close
+    result = cursor.fetchall() # Gets result from query
+    conn.close() # Close the db connection (NOTE: You should do this after each query, otherwise your database may become locked)
+    return result
 # ------------------------ END FUNCTIONS ------------------------ #
 
 
