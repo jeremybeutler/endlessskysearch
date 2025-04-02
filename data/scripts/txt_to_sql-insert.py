@@ -94,24 +94,23 @@ def parse_ships(file_path):
 def generate_sql(ships):
     output = []
     output.append(f"-- Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-    
+    global one_print
+    if one_print == False:
+        one_print = True
+        print("\n---------------------------------------------------")
+        print("---------------------------------------------------")
+        print("Start of ships JSON:")
+        print("\n\n\n")
+        for ship in ships:
+            print(ship, end="\n\n")
+        print("\n\n\n")
+        print("---------------------------------------------------")
+        print("---------------------------------------------------")
+        print("Start of SQL insert script:")
+        print("\n\n\n")
     for ship in ships:
         sid = str(uuid.uuid4())
         weapon_id = str(uuid.uuid4()) if ship['weapon'] else None
-        global one_print
-        if one_print == False:
-            one_print = True
-            print("\n---------------------------------------------------")
-            print("---------------------------------------------------")
-            print("Start of ships JSON:")
-            print("\n\n\n")
-            for ship in ships:
-                print(ship, end="\n\n")
-            print("\n\n\n")
-            print("---------------------------------------------------")
-            print("---------------------------------------------------")
-            print("Start of SQL insert script:")
-            print("\n\n\n")
         # Validate required fields
         if not ship['sprite']:
             raise ValueError(f"Ship {ship['name']} missing sprite")
