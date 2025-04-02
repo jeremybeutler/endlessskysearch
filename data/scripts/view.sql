@@ -7,7 +7,7 @@ SELECT
   s.Never_Disabled AS NeverDisabled,
   s.License,
   s.Name_Singular AS NameSingular,
-  s.Name_Plural AS NamePlural,
+  s.NamePlural AS NamePlural,
   s.Sprite,
   s.CustomShip,
   s.Description,
