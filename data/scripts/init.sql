@@ -24,7 +24,7 @@ CREATE TABLE Ship
   NamePlural VARCHAR NOT NULL,
   Sprite VARCHAR NOT NULL,
   CustomShip INT NOT NULL,
-  Description VARCHAR NOT NULL,
+  Description VARCHAR,
   PRIMARY KEY (SID)
 );
 
