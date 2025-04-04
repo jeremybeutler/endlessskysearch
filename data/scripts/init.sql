@@ -21,7 +21,7 @@ CREATE TABLE Ship
   Never_Disabled INT NOT NULL,
   License VARCHAR,
   Name_Singular VARCHAR NOT NULL,
-  NamePlural VARCHAR NOT NULL,
+  Name_Plural VARCHAR NOT NULL,
   Sprite VARCHAR NOT NULL,
   CustomShip INT NOT NULL,
   Description VARCHAR,

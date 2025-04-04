@@ -1,6 +1,6 @@
-CREATE VIEW ShipDetails AS
+CREATE VIEW ShipDetail AS
 SELECT
---Ship Table
+  -- Ship Table fields (top-level ship fields)
   s.SID,
   s.Faction,
   s.Uncapturable,
@@ -12,38 +12,50 @@ SELECT
   s.CustomShip,
   s.Description,
 
--- Attribute Table
-  a.AID,
-  a.Name AS AttributeName,
-  a.Comment AS AttributeComment,
-  a.VID AS AttributeVID,
+  -- Attributes as an array under "attributes"
+  (
+    SELECT json_agg(json_build_object(
+      'AID', a.AID,
+      'AttributeName', a.Name,
+      'AttributeComment', a.Comment,
+      'AttributeVID', a.VID,
+      'AttributeInt', av.IntegerValue,
+      'AttributeFloat', av.FloatValue,
+      'AttributeString', av.StringValue
+    ))
+    FROM Attribute a
+    LEFT JOIN Value av ON a.VID = av.VID
+    WHERE a.SID = s.SID
+  ) AS attributes,
 
--- Attribute's Value Table
-  av.IntegerValue AS AttributeInt,
-  av.FloatValue AS AttributeFloat,
-  av.StringValue AS AttributeString,
+  -- Weapon as an object under "weapon"
+  (
+    SELECT json_build_object(
+      'WID', w.WID,
+      'WeaponComment', w.Comment,
+      'WeaponBlastRadius', w.BlastRadius,
+      'WeaponShieldDamage', w.ShieldDamage,
+      'WeaponHullDamage', w.HullDamage,
+      'WeaponHitForce', w.HitForce
+    )
+    FROM Weapon w
+    WHERE w.SID = s.SID
+  ) AS weapon,
 
--- Weapon Table
-  w.WID,
-  w.BlastRadius,
-  w.ShieldDamage,
-  w.HullDamage,
-  w.HitForce,
+  -- Outfits as an array under "outfits"
+  (
+    SELECT json_agg(json_build_object(
+      'OID', o.OID,
+      'OutfitName', o.Name,
+      'OutfitComment', o.Comment,
+      'OutfitVID', o.VID,
+      'OutfitInt', ov.IntegerValue,
+      'OutfitFloat', ov.FloatValue,
+      'OutfitString', ov.StringValue
+    ))
+    FROM Outfits o
+    LEFT JOIN Value ov ON o.VID = ov.VID
+    WHERE o.SID = s.SID
+  ) AS outfits
 
--- Outfit Table
-  o.OID,
-  o.Name AS OutfitName,
-  o.Comment AS OutfitComment,
-  o.VID AS OutfitVID,
-
--- Outfit's Value Table
-  ov.IntegerValue AS OutfitInt,
-  ov.FloatValue AS OutfitFloat,
-  ov.StringValue AS OutfitString
-
-FROM Ship s
-LEFT JOIN Attribute a ON s.SID = a.SID
-LEFT JOIN Value av ON a.VID = av.VID
-LEFT JOIN Weapon w ON s.SID = w.SID
-LEFT JOIN Outfits o ON s.SID = o.SID
-LEFT JOIN Value ov ON o.VID = ov.VID;
+FROM Ship s;

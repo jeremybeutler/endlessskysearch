@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Ship</title>
+    <script>
+        function addOutfit() {
+            let index = document.querySelectorAll(".outfit-group").length;
+            let container = document.getElementById("outfits");
+            let div = document.createElement("div");
+            div.className = "outfit-group";
+            div.innerHTML = `
+                <input type="hidden" type="text" name="oid_${index}" required><br>
+                <label>Outfit Name:</label> <input type="text" name="name_${index}" required><br>
+                <label>Quantity:</label> <input type="number" name="quantity_${index}"><br><br>
+            `;
+            container.appendChild(div);
+            document.getElementById("outfit_count").value = index + 1;
+        }
+
+        function addAttribute() {
+            let index = document.querySelectorAll(".attribute-group").length;
+            let container = document.getElementById("attributes");
+            let div = document.createElement("div");
+            div.className = "attribute-group";
+            div.innerHTML = `
+                <input type="hidden" type="text" name="aid_${index}" required><br>
+                <label>Attribute Name:</label> <input type="text" name="name_${index}" required><br>
+                <label>Attribute Value:</label> <input type="text" name="value_${index}" required><br>
+            `;
+            container.appendChild(div);
+            document.getElementById("attribute_count").value = index + 1;
+        }
+    </script>
+</head>
+<body>
+    <h1>Update Ship</h1>
+    <form method="POST">
+        <h2>Ship Details</h2>
+        {% for field in ship_fields %}
+            <label>{{ field.label }}:</label>
+            {% if field.type == "text" %}
+            <input type="text" name="{{ field.name }}" value="{{ ship.get(field.name, '') }}" {% if field.required %}required{% endif %}><br>
+            {% elif field.type == "textarea" %}
+                <textarea name="{{ field.name }}" value="{{ ship.get(field.name, '') }}" {% if field.required %}required{% endif %}></textarea><br>
+            {% elif field.type == "checkbox" %}
+                <input type="checkbox" value="{{ ship.get(field.name, '') }}" name="{{ field.name }}"><br>
+            {% elif field.type == "number" %}
+                <input type="number" value="{{ ship.get(field.name, '') }}" name="{{ field.name }}" {% if field.required %}required{% endif %}
+                    {% if field.step %}step="{{ field.step }}"{% endif %}><br>
+            {% endif %}
+        {% endfor %}
+
+        <h2>Ship Attributes</h2>
+        <input type="hidden" id="attribute_count" name="attribute_count" value="{{attributes|length}}">
+        <div id="attributes">
+            {% for attribute in attributes %}
+            <div class="attribute-group">
+                <input type="hidden" type="text" name="aid_{{loop.index0}}" value="{{attribute.AID}}" required><br>
+                <label>Attribute Name:</label> <input type="text" name="name_{{loop.index0}}" value="{{attribute.Name}}" required><br>
+                <label>Attribute Value:</label> <input type="text" name="value_{{loop.index0}}" value="{{attribute.Value}}" required><br>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" onclick="addAttribute()">Add Attribute</button><br><br>
+
+        <h2>Weapon Details</h2>
+        {% for field in weapon_fields %}
+            <label>{{ field.label }}:</label>
+            {% if field.type == "text" or field.type == "number" %}
+                <input type="{{ field.type }}" name="{{ field.name }}" value="{{ weapon.get(field.name, '') }}" {% if field.required %}required{% endif %}><br>
+            {% elif field.type == "textarea" %}
+                <textarea name="{{ field.name }}" value="{{ weapon.get(field.name, '') }}" {% if field.required %}required{% endif %}></textarea><br>
+            {% elif field.type == "hidden" %}
+                <input type="hidden" type="text" name="WID" value="{{ weapon.get(field.name, '') }}" required><br>
+            {% endif %}
+        {% endfor %}
+
+        <h2>Outfits</h2>
+        <input type="hidden" id="outfit_count" name="outfit_count" value="{{outfits|length}}">
+        <div id="outfits">
+            {% for outfit in outfits %}
+            <div class="outfit-group">
+                <input type="hidden" type="text" name="oid_{{loop.index0}}" value="{{outfit.OID}}" required><br>
+                <label>Outfit Name:</label> <input type="text" name="name_{{loop.index0}}" value="{{outfit.Name}}"  required><br>
+                <label>Quantity:</label> <input type="number" name="quantity_{{loop.index0}}" value="{{outfit.Quantity}}" ><br><br>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" onclick="addOutfit()">Add Outfit</button><br><br>
+
+        <button type="submit">Create Ship</button>
+    </form>
+</body>
+</html>
