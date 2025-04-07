@@ -10,8 +10,8 @@
             div.className = "outfit-group";
             div.innerHTML = `
                 <input type="hidden" type="text" name="oid_${index}" required><br>
-                <label>Outfit Name:</label> <input type="text" name="name_${index}" required><br>
-                <label>Quantity:</label> <input type="number" name="quantity_${index}"><br><br>
+                <label>Outfit Name:</label> <input type="text" name="oname_${index}" required><br>
+                <label>Quantity:</label> <input type="number" name="oquantity_${index}"><br><br>
             `;
             container.appendChild(div);
             document.getElementById("outfit_count").value = index + 1;
@@ -24,8 +24,8 @@
             div.className = "attribute-group";
             div.innerHTML = `
                 <input type="hidden" type="text" name="aid_${index}" required><br>
-                <label>Attribute Name:</label> <input type="text" name="name_${index}" required><br>
-                <label>Attribute Value:</label> <input type="text" name="value_${index}" required><br>
+                <label>Attribute Name:</label> <input type="text" name="aname_${index}" required><br>
+                <label>Attribute Value:</label> <input type="text" name="avalue_${index}" required><br>
             `;
             container.appendChild(div);
             document.getElementById("attribute_count").value = index + 1;
@@ -41,9 +41,9 @@
             {% if field.type == "text" %}
             <input type="text" name="{{ field.name }}" value="{{ ship.get(field.name, '') }}" {% if field.required %}required{% endif %}><br>
             {% elif field.type == "textarea" %}
-                <textarea name="{{ field.name }}" value="{{ ship.get(field.name, '') }}" {% if field.required %}required{% endif %}></textarea><br>
+                <textarea name="{{ field.name }}" value="{{ ship.get(field.name, '') }}" {% if field.required %}required{% endif %}>{{ ship.get(field.name, '') }}</textarea><br>
             {% elif field.type == "checkbox" %}
-                <input type="checkbox" value="{{ ship.get(field.name, '') }}" name="{{ field.name }}"><br>
+                <input type="checkbox" {% if ship.get(field.name, '') == 1 %}checked{% endif %} value="{{ ship.get(field.name, '') }}" name="{{ field.name }}"><br>
             {% elif field.type == "number" %}
                 <input type="number" value="{{ ship.get(field.name, '') }}" name="{{ field.name }}" {% if field.required %}required{% endif %}
                     {% if field.step %}step="{{ field.step }}"{% endif %}><br>
@@ -56,8 +56,8 @@
             {% for attribute in attributes %}
             <div class="attribute-group">
                 <input type="hidden" type="text" name="aid_{{loop.index0}}" value="{{attribute.AID}}" required><br>
-                <label>Attribute Name:</label> <input type="text" name="name_{{loop.index0}}" value="{{attribute.Name}}" required><br>
-                <label>Attribute Value:</label> <input type="text" name="value_{{loop.index0}}" value="{{attribute.Value}}" required><br>
+                <label>Attribute Name:</label> <input type="text" name="aname_{{loop.index0}}" value="{{attribute.Name}}" required><br>
+                <label>Attribute Value:</label> <input type="text" name="avalue_{{loop.index0}}" value="{{attribute.Value}}" required><br>
             </div>
             {% endfor %}
         </div>
@@ -81,14 +81,14 @@
             {% for outfit in outfits %}
             <div class="outfit-group">
                 <input type="hidden" type="text" name="oid_{{loop.index0}}" value="{{outfit.OID}}" required><br>
-                <label>Outfit Name:</label> <input type="text" name="name_{{loop.index0}}" value="{{outfit.Name}}"  required><br>
-                <label>Quantity:</label> <input type="number" name="quantity_{{loop.index0}}" value="{{outfit.Quantity}}" ><br><br>
+                <label>Outfit Name:</label> <input type="text" name="oname_{{loop.index0}}" value="{{outfit.Name}}"  required><br>
+                <label>Quantity:</label> <input type="number" name="oquantity_{{loop.index0}}" value="{{outfit.Quantity}}" ><br><br>
             </div>
             {% endfor %}
         </div>
         <button type="button" onclick="addOutfit()">Add Outfit</button><br><br>
 
-        <button type="submit">Create Ship</button>
+        <button type="submit">Update Ship</button>
     </form>
 </body>
 </html>

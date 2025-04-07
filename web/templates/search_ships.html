@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Ship</title>
+    <title>Search for Ships</title>
     <script>
         function addOutfit() {
             let index = document.querySelectorAll(".outfit-group").length;
@@ -9,9 +9,9 @@
             let div = document.createElement("div");
             div.className = "outfit-group";
             div.innerHTML = `
-                <input type="hidden" type="text" name="oid_${index}" required><br>
-                <label>Outfit Name:</label> <input type="text" name="oname_${index}" required><br>
-                <label>Quantity:</label> <input type="number" name="oquantity_${index}"><br><br>
+                <input type="hidden" type="text" name="oid_${index}" ><br>
+                <label>Outfit Name:</label> <input type="text" name="name_${index}" ><br>
+                <label>Quantity:</label> <input type="number" name="quantity_${index}"><br><br>
             `;
             container.appendChild(div);
             document.getElementById("outfit_count").value = index + 1;
@@ -23,9 +23,9 @@
             let div = document.createElement("div");
             div.className = "attribute-group";
             div.innerHTML = `
-                <input type="hidden" type="text" name="aid_${index}" required><br>
-                <label>Attribute Name:</label> <input type="text" name="aname_${index}" required><br>
-                <label>Attribute Value:</label> <input type="text" name="avalue_${index}" required><br>
+                <input type="hidden" type="text" name="aid_${index}" ><br>
+                <label>Attribute Name:</label> <input type="text" name="name_${index}" ><br>
+                <label>Attribute Value:</label> <input type="text" name="value_${index}" ><br>
             `;
             container.appendChild(div);
             document.getElementById("attribute_count").value = index + 1;
@@ -33,19 +33,19 @@
     </script>
 </head>
 <body>
-    <h1>Create a New Ship</h1>
+    <h1>Search for Ships</h1>
     <form method="POST">
         <h2>Ship Details</h2>
         {% for field in ship_fields %}
             <label>{{ field.label }}:</label>
             {% if field.type == "text" %}
-            <input type="text" name="{{ field.name }}" {% if field.required %}required{% endif %}><br>
+            <input type="text" name="{{ field.name }}" ><br>
             {% elif field.type == "textarea" %}
-                <textarea name="{{ field.name }}" {% if field.required %}required{% endif %}></textarea><br>
+                <textarea name="{{ field.name }}" ></textarea><br>
             {% elif field.type == "checkbox" %}
                 <input type="checkbox" name="{{ field.name }}"><br>
             {% elif field.type == "number" %}
-                <input type="number" name="{{ field.name }}" {% if field.required %}required{% endif %}
+                <input type="number" name="{{ field.name }}" 
                     {% if field.step %}step="{{ field.step }}"{% endif %}><br>
             {% endif %}
         {% endfor %}
@@ -59,9 +59,9 @@
         {% for field in weapon_fields %}
             <label>{{ field.label }}:</label>
             {% if field.type == "text" or field.type == "number" %}
-                <input type="{{ field.type }}" name="{{ field.name }}" {% if field.required %}required{% endif %}><br>
+                <input type="{{ field.type }}" name="{{ field.name }}" ><br>
             {% elif field.type == "textarea" %}
-                <textarea name="{{ field.name }}" {% if field.required %}required{% endif %}></textarea><br>
+                <textarea name="{{ field.name }}" ></textarea><br>
             {% endif %}
         {% endfor %}
 
@@ -70,7 +70,7 @@
         <div id="outfits"></div>
         <button type="button" onclick="addOutfit()">Add Outfit</button><br><br>
 
-        <button type="submit">Create Ship</button>
+        <button type="submit">Search</button>
     </form>
 </body>
 </html>

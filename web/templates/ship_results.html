@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Ships</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            margin-bottom: 1rem;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button, a.button {
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover, a.button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        .no-results {
+            padding: 1rem;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>View Ships</h1>
+        <a href="/" class="button">Back to Home</a>
+    </div>
+    <table>
+        <tr>
+        {% for field in ship_fields %}
+            <th>{{field.label}}</th>
+        {% endfor %}
+        </tr>
+        {% for ship in ships %}
+        <tr onclick="window.location.href='/update-ship/{{ship.ship.sid}}';">
+            {% for field in ship_fields %}
+                <td>{{ship.ship.get(field.name, '') }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+</body>
+</html>

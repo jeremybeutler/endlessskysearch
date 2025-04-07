@@ -1,11 +1,12 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import psycopg2
 from dotenv import load_dotenv
 import uuid
 
 # Define ship attributes
 SHIP_FIELDS = [
+    # {"name": "SID", "label": "", "type": "hidden", "required": False},
     {"name": "faction", "label": "Faction", "type": "text", "required": False},
     {"name": "uncapturable", "label": "Uncapturable", "type": "checkbox", "required": False},
     {"name": "neverdisabled", "label": "Never Disabled", "type": "checkbox", "required": True},
@@ -55,30 +56,6 @@ def determine_type(input_value):
     else:
         return "ERROR"
 
-def get_all_ships(): ## Eman0202byu ###A function that pulls the view of all ships in database
-    # Create a new database connection for each request
-    conn = get_db_connection()  # Create a new database connection
-    cursor = conn.cursor() # Creates a cursor for the connection, you need this to do queries
-    # Query the db
-    query = "SELECT name, quantity FROM items"
-    cursor.execute(query)
-    # Get result and close
-    result = cursor.fetchall() # Gets result from query
-    conn.close() # Close the db connection (NOTE: You should do this after each query, otherwise your database may become locked)
-    return result
-
-def get_ship_param(): ## Eman0202byu ###passed in arg1 = collum_name arg2 = collumn_value
-    # Create a new database connection for each request
-    conn = get_db_connection()  # Create a new database connection
-    cursor = conn.cursor() # Creates a cursor for the connection, you need this to do queries
-    # Query the db
-    query = "SELECT name, quantity FROM items"
-    cursor.execute(query)
-    # Get result and close
-    result = cursor.fetchall() # Gets result from query
-    conn.close() # Close the db connection (NOTE: You should do this after each query, otherwise your database may become locked)
-    return result
-
 def get_ship_by_id(ship_id): 
     # Create a new database connection for each request
     conn = get_db_connection()  # Create a new database connection
@@ -111,6 +88,7 @@ def get_ship_by_id(ship_id):
         # Organizing the ship info (if it's the first row or contains the ship's main details)
         if "sid" in row_dict:
             ship = {
+                "sid": row_dict["sid"],
                 "faction": row_dict["faction"],
                 "uncapturable": row_dict["uncapturable"],
                 "neverdisabled": row_dict["neverdisabled"],
@@ -170,17 +148,96 @@ def get_ship_by_id(ship_id):
         "weapon": weapon
     }
 
-
-def create_ship(): ## Eman0202byu ###passed in arg1 = ship obj; return SID
-    # Create a new database connection for each request
-    conn = get_db_connection()  # Create a new database connection
-    cursor = conn.cursor() # Creates a cursor for the connection, you need this to do queries
-    # Query the db
-    query = "SELECT name, quantity FROM items"
+def get_all_ships():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = """SELECT sid from Ship"""
     cursor.execute(query)
-    # Get result and close
-    result = cursor.fetchall() # Gets result from query
-    conn.close() # Close the db connection (NOTE: You should do this after each query, otherwise your database may become locked)
+    result = cursor.fetchall()
+    conn.close()
+    result = [item[0] for item in result]
+    return result
+
+def search_ships(ship, attributes, weapon, outfits):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query = """
+    SELECT sid FROM ShipDetail s
+    WHERE
+        s.faction ILIKE %s AND
+        s.namesingular ILIKE %s AND
+        s.nameplural ILIKE %s AND
+        s.sprite ILIKE %s AND
+        s.description ILIKE %s
+        AND EXISTS (
+            SELECT 1 FROM Weapon w
+            WHERE w.sid = s.sid AND
+                w.blastradius::text ILIKE %s AND
+                w.shielddamage::text ILIKE %s AND
+                w.hulldamage::text ILIKE %s AND
+                w.hitforce::text ILIKE %s
+        )
+    """
+
+    values = [
+        f"%{ship['faction']}%",
+        f"%{ship['namesingular']}%",
+        f"%{ship['nameplural']}%",
+        f"%{ship['sprite']}%",
+        f"%{ship['description']}%",
+        f"%{weapon['WeaponBlastRadius']}%",
+        f"%{weapon['WeaponShieldDamage']}%",
+        f"%{weapon['WeaponHullDamage']}%",
+        f"%{weapon['WeaponHitForce']}%",
+    ]
+
+    for attribute in attributes:
+        query += """
+        AND EXISTS (
+            SELECT 1 FROM Attribute a
+            LEFT JOIN Value av ON a.vid = av.vid
+            WHERE a.sid = s.sid AND
+                a.name ILIKE %s AND (
+                    av.integervalue::text ILIKE %s OR
+                    av.floatvalue::text ILIKE %s OR
+                    av.stringvalue ILIKE %s
+                )
+        )
+        """
+        values.extend([
+            f"%{attribute['Name']}%",
+            f"%{attribute['Value']}%",
+            f"%{attribute['Value']}%",
+            f"%{attribute['Value']}%",
+        ])
+
+    for outfit in outfits:
+        quantity = outfit.get('Quantity') or 1
+        query += """
+        AND EXISTS (
+            SELECT 1 FROM Outfits o
+            LEFT JOIN Value ov ON o.vid = ov.vid
+            WHERE o.sid = s.sid AND
+                o.name ILIKE %s AND (
+                    ov.integervalue::text ILIKE %s OR
+                    ov.floatvalue::text ILIKE %s OR
+                    ov.stringvalue ILIKE %s
+                )
+        )
+        """
+        values.extend([
+            f"%{outfit['Name']}%",
+            f"%{quantity}%",
+            f"%{quantity}%",
+            f"%{quantity}%",
+        ])
+
+    cursor.execute(query, values)
+    column_names = [desc[0] for desc in cursor.description]
+    result = cursor.fetchall()
+    conn.close()
+    result = [item[0] for item in result]
     return result
 
 def create_new_ship(ship, attributes, weapon, outfits):
@@ -245,7 +302,7 @@ def create_new_ship(ship, attributes, weapon, outfits):
             INSERT INTO Value (vid, integervalue, floatvalue, stringvalue)
             VALUES (%s, %s, %s, %s)
         """
-        values = (vid, outfit['quantity'] if outfit['quantity'] > 1 else 1, None, None)
+        values = (vid, outfit['quantity'] if outfit['quantity'] else 1, None, None)
         cursor.execute(query, values)
 
         query = """
@@ -261,7 +318,6 @@ def create_new_ship(ship, attributes, weapon, outfits):
 def update_existing_ship(sid, old_ship, updated_ship):
     conn = get_db_connection()
     cursor = conn.cursor()
-    print('old_ship', old_ship, 'updated_ship', updated_ship)
     query = """
         UPDATE Ship
         SET faction = %s, uncapturable = %s, never_disabled = %s, name_singular = %s, nameplural = %s, sprite = %s, description = %s
@@ -269,6 +325,7 @@ def update_existing_ship(sid, old_ship, updated_ship):
     """
     values = (updated_ship['ship']['faction'], updated_ship['ship']['uncapturable'], updated_ship['ship']['neverdisabled'], updated_ship['ship']['namesingular'], updated_ship['ship']['nameplural'], updated_ship['ship']['sprite'], updated_ship['ship']['description'], sid)
     cursor.execute(query, values)
+    conn.commit()
 
     for index, attribute in enumerate(updated_ship['attributes']):
         if index >= len(old_ship['attributes']):
@@ -279,19 +336,21 @@ def update_existing_ship(sid, old_ship, updated_ship):
             """
             values = (
                 vid,
-                attribute['value'] if attribute['type'] == 'int' else None,
-                attribute['value'] if attribute['type'] == 'float' else None,
-                attribute['value'] if attribute['type'] == 'str' else None
+                attribute['Value'] if attribute['Type'] == 'int' else None,
+                attribute['Value'] if attribute['Type'] == 'float' else None,
+                attribute['Value'] if attribute['Type'] == 'str' else None
             )
             cursor.execute(query, values)
+            conn.commit()
 
             aid = str(uuid.uuid4())
             query = """
                 INSERT INTO Attribute (aid, name, comment, sid, vid)
                 VALUES (%s, %s, %s, %s, %s);
             """
-            values = (aid, attribute['name'], '', sid, vid)
+            values = (aid, attribute['Name'], '', sid, vid)
             cursor.execute(query, values)
+            conn.commit()
         elif attribute != old_ship['attributes'][index]:
             if attribute['Name'] != old_ship['attributes'][index]['Name']:
                 query = """
@@ -301,6 +360,7 @@ def update_existing_ship(sid, old_ship, updated_ship):
                 """
                 values = (attribute['Name'], old_ship['attributes'][index]['AID'])
                 cursor.execute(query, values)
+                conn.commit()
             if attribute['Value'] != old_ship['attributes'][index]['Value']:
                 query = """
                     UPDATe Value
@@ -316,6 +376,7 @@ def update_existing_ship(sid, old_ship, updated_ship):
                     old_ship['attributes'][index]['AID']
                 )
                 cursor.execute(query, values)
+                conn.commit()
     for index, outfit in enumerate(updated_ship['outfits']):
         if index >= len(old_ship['outfits']):
             vid = str(uuid.uuid4())
@@ -323,8 +384,9 @@ def update_existing_ship(sid, old_ship, updated_ship):
                 INSERT INTO Value (vid, integervalue, floatvalue, stringvalue)
                 VALUES (%s, %s, %s, %s)
             """
-            values = (vid, outfit['quantity'], None, None)
+            values = (vid, outfit['Quantity'], None, None)
             cursor.execute(query, values)
+            conn.commit()
 
             oid = str(uuid.uuid4())
             query = """
@@ -333,6 +395,7 @@ def update_existing_ship(sid, old_ship, updated_ship):
             """
             values = (oid, outfit['Name'], '', sid, vid)
             cursor.execute(query, values)
+            conn.commit()
         elif outfit != old_ship['outfits'][index]:
             if outfit['Name'] != old_ship['outfits'][index]['Name']:
                 query = """
@@ -342,16 +405,18 @@ def update_existing_ship(sid, old_ship, updated_ship):
                 """
                 values = (outfit['Name'], old_ship['outfits'][index]['OID'])
                 cursor.execute(query, values)
+                conn.commit()
             if outfit['Quantity'] != old_ship['outfits'][index]['Quantity']:
                 query = """
                     UPDATE Value
                     SET integervalue = %s, floatvalue = %s, stringvalue = %s
                     WHERE vid = (
-                        SELECT oid FROM Outfits WHERE oid = %s
+                        SELECT vid FROM Outfits WHERE oid = %s
                     )
                 """
                 values = (outfit['Quantity'], None, None, old_ship['outfits'][index]['OID'])
                 cursor.execute(query, values)
+                conn.commit()
 
     if updated_ship['weapon'] != old_ship['weapon']:
         query = """
@@ -368,6 +433,7 @@ def update_existing_ship(sid, old_ship, updated_ship):
             old_ship['weapon']['WID'],
         )
         cursor.execute(query, values)
+        conn.commit()
 
     conn.commit()
     conn.close()
@@ -379,15 +445,14 @@ def update_existing_ship(sid, old_ship, updated_ship):
 # EXAMPLE OF GET REQUEST
 @app.route("/", methods=["GET"])
 def home():
-    items = get_all_ships() # Call defined function to get all items
-    return render_template("index.html", items=items) # Return the page to be rendered
+    return redirect(url_for('search'))
 
 # EXAMPLE OF POST REQUEST
 @app.route("/create-ship", methods=["GET", "POST"])
 def create_ship():
     if request.method == 'POST':
         ship_data = {field["name"]: request.form.get(field["name"]) if field["type"] != "checkbox" else int(field["name"] in request.form) for field in SHIP_FIELDS}
-        ship_data['custom_ship'] = True
+        ship_data['custom_ship'] = 1
         weapon_data = {field["name"]: int(request.form.get(field["name"])) if field['type'] == 'number' else request.form.get(field["name"]) for field in WEAPON_FIELDS}
         
         # Process outfits (multiple entries)
@@ -396,20 +461,20 @@ def create_ship():
         outfit_count = int(request.form.get("outfit_count", 0))  # Dynamic count
         for i in range(outfit_count):
             outfit_data.append({
-                "name": request.form.get(f"name_{i}"),
-                "quantity": int(request.form.get(f"quantity_{i}")) if request.form.get(f"quantity_{i}") else 1
+                "name": request.form.get(f"oname_{i}"),
+                "quantity": int(request.form.get(f"oquantity_{i}")) if request.form.get(f"oquantity_{i}") else 1
             })
         attribute_count = int(request.form.get("attribute_count", 0))
         for i in range(attribute_count):
-            attribute_type = determine_type(request.form.get(f"value_{i}"))
+            attribute_type = determine_type(request.form.get(f"avalue_{i}"))
             if attribute_type == 'str':
-                attribute_value = str(request.form.get(f"value_{i}"))
+                attribute_value = str(request.form.get(f"avalue_{i}"))
             elif attribute_type == 'int':
-                attribute_value = int(request.form.get(f"value_{i}"))
+                attribute_value = int(request.form.get(f"avalue_{i}"))
             elif attribute_type == 'float':
-                attribute_type = float(request.form.get(f"value_{i}"))
+                attribute_type = float(request.form.get(f"avalue_{i}"))
             attribute_data.append({
-                "name": request.form.get(f"name_{i}"),
+                "name": request.form.get(f"aname_{i}"),
                 "value": attribute_value,
                 "type": attribute_type
             })
@@ -417,16 +482,12 @@ def create_ship():
         create_new_ship(ship_data, attribute_data, weapon_data, outfit_data)
 
     return render_template('create_ship.html', ship_fields=SHIP_FIELDS, weapon_fields=WEAPON_FIELDS)
-# ------------------------ END ROUTES ------------------------ #
 
 @app.route("/update-ship/<uuid:ship_uuid>", methods=["GET", "POST"])
 def update_ship(ship_uuid):
     ship_uuid = str(ship_uuid)
     ship = get_ship_by_id(ship_uuid)
     if request.method == 'POST':
-        for field in SHIP_FIELDS:
-            if field["type"] == "checkbox":
-                print(int(field["name"] in request.form) )
         ship_data = {field["name"]: request.form.get(field["name"]) if field["type"] != "checkbox" else int(field["name"] in request.form) for field in SHIP_FIELDS}
         ship_data['custom_ship'] = 1
         weapon_data = {field["name"]: int(request.form.get(field["name"])) if field['type'] == 'number' else request.form.get(field["name"]) for field in WEAPON_FIELDS}
@@ -438,6 +499,51 @@ def update_ship(ship_uuid):
         for i in range(outfit_count):
             outfit_data.append({
                 "OID": request.form.get(f"oid_{i}"),
+                "Name": request.form.get(f"oname_{i}"),
+                "Quantity": int(request.form.get(f"oquantity_{i}")) if request.form.get(f"oquantity_{i}") else 1
+            })
+        attribute_count = int(request.form.get("attribute_count", 0))
+        for i in range(attribute_count):
+            attribute_type = determine_type(request.form.get(f"avalue_{i}"))
+            if attribute_type == 'str':
+                attribute_value = str(request.form.get(f"avalue_{i}"))
+            elif attribute_type == 'int':
+                attribute_value = int(request.form.get(f"avalue_{i}"))
+            elif attribute_type == 'float':
+                attribute_type = float(request.form.get(f"avalue_{i}"))
+            attribute_data.append({
+                "AID": request.form.get(f"aid_{i}"),
+                "Name": request.form.get(f"aname_{i}"),
+                "Value": attribute_value,
+                "Type": attribute_type
+            })
+        update_existing_ship(ship_uuid, ship, { 'ship': ship_data, 'attributes': attribute_data, 'outfits': outfit_data, 'weapon': weapon_data })
+        ship_ids = session.pop('search_results', None) or get_all_ships()
+        session['search_results'] = ship_ids
+        return redirect(url_for('ships'))
+
+
+    return render_template('update_ship.html', 
+        ship_fields=SHIP_FIELDS, 
+        weapon_fields=WEAPON_FIELDS, 
+        ship=ship['ship'], 
+        weapon=ship['weapon'], 
+        attributes=ship['attributes'], 
+        outfits=ship['outfits']
+    )
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    if request.method == 'POST':
+        ship_data = {field["name"]: request.form.get(field["name"]) if field["type"] != "checkbox" else int(field["name"] in request.form) for field in SHIP_FIELDS}
+        weapon_data = {field["name"]: int(request.form.get(field["name"])) if field['type'] == 'number' and request.form.get(field["name"]) != '' else request.form.get(field["name"]) for field in WEAPON_FIELDS}
+        
+        # Process outfits (multiple entries)
+        outfit_data = []
+        attribute_data = []
+        outfit_count = int(request.form.get("outfit_count", 0))  # Dynamic count
+        for i in range(outfit_count):
+            outfit_data.append({
                 "Name": request.form.get(f"name_{i}"),
                 "Quantity": int(request.form.get(f"quantity_{i}")) if request.form.get(f"quantity_{i}") else 1
             })
@@ -451,22 +557,28 @@ def update_ship(ship_uuid):
             elif attribute_type == 'float':
                 attribute_type = float(request.form.get(f"value_{i}"))
             attribute_data.append({
-                "AID": request.form.get(f"aid_{i}"),
                 "Name": request.form.get(f"name_{i}"),
                 "Value": attribute_value,
                 "Type": attribute_type
             })
-        update_existing_ship(ship_uuid, ship, { 'ship': ship_data, 'attributes': attribute_data, 'outfits': outfit_data, 'weapon': weapon_data })
-        ship = get_ship_by_id(ship_uuid)
 
-    return render_template('update_ship.html', 
-        ship_fields=SHIP_FIELDS, 
-        weapon_fields=WEAPON_FIELDS, 
-        ship=ship['ship'], 
-        weapon=ship['weapon'], 
-        attributes=ship['attributes'], 
-        outfits=ship['outfits']
-    )
+        ship_ids = search_ships(ship_data, attribute_data, weapon_data, outfit_data)
+        session['search_results'] = ship_ids
+        return redirect(url_for('ships'))
+
+    return render_template('search_ships.html', ship_fields=SHIP_FIELDS, weapon_fields=WEAPON_FIELDS)
+
+@app.route("/ships", methods=["GET", "POST"])
+def ships():
+    ship_ids = session.pop('search_results', None)
+    session['search_results'] = ship_ids
+    ships_data = [get_ship_by_id(ship_id) for ship_id in ship_ids]
+    if not ships:
+        return redirect(url_for('search'))
+    
+    return render_template('ship_results.html', ships=ships_data, ship_fields=SHIP_FIELDS, weapon_fields=WEAPON_FIELDS)
+
+# ------------------------ END ROUTES ------------------------ #
 
 # listen on port 8080
 if __name__ == "__main__":

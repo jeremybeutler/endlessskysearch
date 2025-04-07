@@ -1,6 +1,22 @@
 import uuid
 import re
 from datetime import datetime
+import psycopg2
+from dotenv import load_dotenv
+import os
+# Load environment variables from .env file
+load_dotenv()
+
+# Function to retrieve DB connection
+def get_db_connection():
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_DATABASE")
+    )
+    return conn
+
 ## Below is the file that is read from to generate the insert script
 INPUT_FILE = "bunrodea-ships.txt"
 ## Below is a global that ensures "Start of ships JSON:" is only printed once
@@ -194,5 +210,9 @@ def determine_value_type(value):
 
 if __name__ == "__main__":
     ships = parse_ships(INPUT_FILE)
-    sql = generate_sql(ships)
-    print(sql)
+    query = generate_sql(ships)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(query)
+    conn.commit() 
+    conn.close()
