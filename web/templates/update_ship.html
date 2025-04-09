@@ -1,7 +1,141 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Update Ship</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #007bff;
+            padding: 15px 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .navbar-links a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar-links a:hover {
+            color: #d1e6ff;
+        }
+
+        h1 {
+            padding: 30px 40px 10px;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .section-title {
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+
+        .attribute-group,
+        .outfit-group {
+            background-color: #f0f4f8;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            width: fit-content;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+        }
+    </style>
+
     <script>
         function addOutfit() {
             let index = document.querySelectorAll(".outfit-group").length;
@@ -9,9 +143,9 @@
             let div = document.createElement("div");
             div.className = "outfit-group";
             div.innerHTML = `
-                <input type="hidden" type="text" name="oid_${index}" required><br>
-                <label>Outfit Name:</label> <input type="text" name="oname_${index}" required><br>
-                <label>Quantity:</label> <input type="number" name="oquantity_${index}"><br><br>
+                <input type="hidden" name="oid_${index}">
+                <label>Outfit Name:</label> <input type="text" name="oname_${index}">
+                <label>Quantity:</label> <input type="number" name="oquantity_${index}">
             `;
             container.appendChild(div);
             document.getElementById("outfit_count").value = index + 1;
@@ -23,72 +157,92 @@
             let div = document.createElement("div");
             div.className = "attribute-group";
             div.innerHTML = `
-                <input type="hidden" type="text" name="aid_${index}" required><br>
-                <label>Attribute Name:</label> <input type="text" name="aname_${index}" required><br>
-                <label>Attribute Value:</label> <input type="text" name="avalue_${index}" required><br>
+                <input type="hidden" name="aid_${index}">
+                <label>Attribute Name:</label> <input type="text" name="aname_${index}">
+                <label>Attribute Value:</label> <input type="text" name="avalue_${index}">
             `;
             container.appendChild(div);
             document.getElementById("attribute_count").value = index + 1;
         }
     </script>
 </head>
+
 <body>
+    <nav class="navbar">
+        <div class="navbar-brand">Ship Manager</div>
+        <div class="navbar-links">
+            <a href="/search">Search</a>
+            <a href="/create-ship">Create Ship</a>
+            <a href="/view-ships">View All Ships</a>
+        </div>
+    </nav>
+
     <h1>Update Ship</h1>
     <form method="POST">
-        <h2>Ship Details</h2>
-        {% for field in ship_fields %}
-            <label>{{ field.label }}:</label>
-            {% if field.type == "text" %}
-            <input type="text" name="{{ field.name }}" value="{{ ship.get(field.name, '') }}" {% if field.required %}required{% endif %}><br>
-            {% elif field.type == "textarea" %}
-                <textarea name="{{ field.name }}" value="{{ ship.get(field.name, '') }}" {% if field.required %}required{% endif %}>{{ ship.get(field.name, '') }}</textarea><br>
-            {% elif field.type == "checkbox" %}
-                <input type="checkbox" {% if ship.get(field.name, '') == 1 %}checked{% endif %} value="{{ ship.get(field.name, '') }}" name="{{ field.name }}"><br>
-            {% elif field.type == "number" %}
-                <input type="number" value="{{ ship.get(field.name, '') }}" name="{{ field.name }}" {% if field.required %}required{% endif %}
-                    {% if field.step %}step="{{ field.step }}"{% endif %}><br>
-            {% endif %}
-        {% endfor %}
+        <div class="form-row">
+            <div class="form-section">
+                <h2>Ship Details</h2>
+                {% for field in ship_fields %}
+                    <label>{{ field.label }}:</label>
+                    {% if field.type == "text" %}
+                        <input type="text" name="{{ field.name }}" value="{{ ship.get(field.name, '') }}" {% if field.required %}required{% endif %}>
+                    {% elif field.type == "textarea" %}
+                        <textarea name="{{ field.name }}" {% if field.required %}required{% endif %}>{{ ship.get(field.name, '') }}</textarea>
+                    {% elif field.type == "checkbox" %}
+                        <input type="checkbox" name="{{ field.name }}" value="1" {% if ship.get(field.name, '') == 1 %}checked{% endif %}> {{ field.label }}
+                    {% elif field.type == "number" %}
+                        <input type="number" name="{{ field.name }}" value="{{ ship.get(field.name, '') }}" {% if field.required %}required{% endif %} {% if field.step %}step="{{ field.step }}"{% endif %}>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-        <h2>Ship Attributes</h2>
-        <input type="hidden" id="attribute_count" name="attribute_count" value="{{attributes|length}}">
+            <div class="form-section">
+                <h2>Weapon Details</h2>
+                {% for field in weapon_fields %}
+                    <label>{{ field.label }}:</label>
+                    {% if field.type == "text" or field.type == "number" %}
+                        <input type="{{ field.type }}" name="{{ field.name }}" value="{{ weapon.get(field.name, '') }}" {% if field.required %}required{% endif %}>
+                    {% elif field.type == "textarea" %}
+                        <textarea name="{{ field.name }}" {% if field.required %}required{% endif %}>{{ weapon.get(field.name, '') }}</textarea>
+                    {% elif field.type == "hidden" %}
+                        <input type="hidden" name="WID" value="{{ weapon.get(field.name, '') }}">
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <h2 class="section-title">Ship Attributes</h2>
+        <input type="hidden" id="attribute_count" name="attribute_count" value="{{ attributes|length }}">
         <div id="attributes">
             {% for attribute in attributes %}
-            <div class="attribute-group">
-                <input type="hidden" type="text" name="aid_{{loop.index0}}" value="{{attribute.AID}}" required><br>
-                <label>Attribute Name:</label> <input type="text" name="aname_{{loop.index0}}" value="{{attribute.Name}}" required><br>
-                <label>Attribute Value:</label> <input type="text" name="avalue_{{loop.index0}}" value="{{attribute.Value}}" required><br>
-            </div>
+                <div class="attribute-group">
+                    <input type="hidden" name="aid_{{ loop.index0 }}" value="{{ attribute.AID }}">
+                    <label>Attribute Name:</label> <input type="text" name="aname_{{ loop.index0 }}" value="{{ attribute.Name }}">
+                    <label>Attribute Value:</label> <input type="text" name="avalue_{{ loop.index0 }}" value="{{ attribute.Value }}">
+                </div>
             {% endfor %}
         </div>
-        <button type="button" onclick="addAttribute()">Add Attribute</button><br><br>
+        <div class="button-group">
+            <button type="button" class="btn" onclick="addAttribute()">➕ Add Attribute</button>
+        </div>
 
-        <h2>Weapon Details</h2>
-        {% for field in weapon_fields %}
-            <label>{{ field.label }}:</label>
-            {% if field.type == "text" or field.type == "number" %}
-                <input type="{{ field.type }}" name="{{ field.name }}" value="{{ weapon.get(field.name, '') }}" {% if field.required %}required{% endif %}><br>
-            {% elif field.type == "textarea" %}
-                <textarea name="{{ field.name }}" value="{{ weapon.get(field.name, '') }}" {% if field.required %}required{% endif %}></textarea><br>
-            {% elif field.type == "hidden" %}
-                <input type="hidden" type="text" name="WID" value="{{ weapon.get(field.name, '') }}" required><br>
-            {% endif %}
-        {% endfor %}
-
-        <h2>Outfits</h2>
-        <input type="hidden" id="outfit_count" name="outfit_count" value="{{outfits|length}}">
+        <h2 class="section-title">Outfits</h2>
+        <input type="hidden" id="outfit_count" name="outfit_count" value="{{ outfits|length }}">
         <div id="outfits">
             {% for outfit in outfits %}
-            <div class="outfit-group">
-                <input type="hidden" type="text" name="oid_{{loop.index0}}" value="{{outfit.OID}}" required><br>
-                <label>Outfit Name:</label> <input type="text" name="oname_{{loop.index0}}" value="{{outfit.Name}}"  required><br>
-                <label>Quantity:</label> <input type="number" name="oquantity_{{loop.index0}}" value="{{outfit.Quantity}}" ><br><br>
-            </div>
+                <div class="outfit-group">
+                    <input type="hidden" name="oid_{{ loop.index0 }}" value="{{ outfit.OID }}">
+                    <label>Outfit Name:</label> <input type="text" name="oname_{{ loop.index0 }}" value="{{ outfit.Name }}">
+                    <label>Quantity:</label> <input type="number" name="oquantity_{{ loop.index0 }}" value="{{ outfit.Quantity }}">
+                </div>
             {% endfor %}
         </div>
-        <button type="button" onclick="addOutfit()">Add Outfit</button><br><br>
 
-        <button type="submit">Update Ship</button>
+        <div class="button-group">
+            <button type="button" class="btn" onclick="addOutfit()">🧥 Add Outfit</button>
+            <button type="submit" class="btn">💾 Update Ship</button>
+        </div>
     </form>
 </body>
+
 </html>
