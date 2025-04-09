@@ -166,6 +166,8 @@ def search_ships(ship, attributes, weapon, outfits):
     SELECT sid FROM ShipDetail s
     WHERE
         s.faction ILIKE %s AND
+        s.uncapturable = %s AND
+        s.neverdisabled = %s AND
         s.namesingular ILIKE %s AND
         s.nameplural ILIKE %s AND
         s.sprite ILIKE %s AND
@@ -182,6 +184,8 @@ def search_ships(ship, attributes, weapon, outfits):
 
     values = [
         f"%{ship['faction']}%",
+        ship['uncapturable'],
+        ship['neverdisabled'],
         f"%{ship['namesingular']}%",
         f"%{ship['nameplural']}%",
         f"%{ship['sprite']}%",
