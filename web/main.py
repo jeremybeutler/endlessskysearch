@@ -484,6 +484,9 @@ def create_ship():
             })
 
         create_new_ship(ship_data, attribute_data, weapon_data, outfit_data)
+        ship_ids = get_all_ships()
+        session['search_results'] = ship_ids
+        return redirect(url_for('ships'))
 
     return render_template('create_ship.html', ship_fields=SHIP_FIELDS, weapon_fields=WEAPON_FIELDS)
 
